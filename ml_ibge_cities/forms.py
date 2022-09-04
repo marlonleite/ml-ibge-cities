@@ -1,6 +1,7 @@
 from django import forms
-from ml_ibge.ibge import IBGE
 from requests.exceptions import ConnectionError
+
+from ml_ibge_cities.ibge import IBGE
 
 
 class MLIBGECitiesForm(forms.ModelForm):
@@ -16,9 +17,13 @@ class MLIBGECitiesForm(forms.ModelForm):
 
             if "state" in self.data:
                 state = self.data.get("state")
-                self.fields["city"].choices = default_choices + self._choices_cities(state)
+                self.fields["city"].choices = default_choices + self._choices_cities(
+                    state
+                )
             elif self.instance.pk:
-                self.fields["city"].choices = default_choices + self._choices_cities(self.instance.state)
+                self.fields["city"].choices = default_choices + self._choices_cities(
+                    self.instance.state
+                )
                 self.initial["city"] = self.instance.city
         except ConnectionError:
             pass
@@ -27,4 +32,7 @@ class MLIBGECitiesForm(forms.ModelForm):
         return [(state["UF-sigla"], state["UF-nome"]) for state in IBGE.get_states()]
 
     def _choices_cities(self, uf) -> list[tuple[str, str]]:
-        return [(city["distrito-nome"], city["distrito-nome"]) for city in IBGE.get_cities(uf)]
+        return [
+            (city["distrito-nome"], city["distrito-nome"])
+            for city in IBGE.get_cities(uf)
+        ]
